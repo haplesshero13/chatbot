@@ -70,7 +70,12 @@ async function main() {
     await Promise.all(
       commands(apiClient, chatClient).map(async (command) => {
         if (command.pattern.test(message)) {
-          await command.implementation(channel, user, message, msg);
+          await command.implementation(message.split(' '))(
+            channel,
+            user,
+            message,
+            msg,
+          );
         }
       }),
     );

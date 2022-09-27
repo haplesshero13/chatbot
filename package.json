@@ -1,4 +1,7 @@
 {
+  "engines": {
+    "node": ">=18.0.0 <19.0.0"
+  },
   "dependencies": {
     "@twurple/api": "^5.2.4",
     "@twurple/auth": "^5.2.4",
