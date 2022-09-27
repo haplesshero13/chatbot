@@ -3,12 +3,13 @@ import { ChatClient, LogLevel } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { readFile, writeFile } from 'node:fs/promises';
-import * as dotenv from 'dotenv'
+import * as dotenv from 'dotenv';
+import {commands} from './commands'
 
 dotenv.config()
 
 async function main() {
-  const autoShoutoutUsers = [];
+  const autoShoutoutUsers: string[] = ['haplesshero'];
   const autoShoutouts = autoShoutoutUsers.reduce<Record<string, Date | number>>((acc, user) => {
     return {...acc, [user]: 0}},
     {}
@@ -43,28 +44,18 @@ async function main() {
     chatClient.say(channel, '/me has joined the chat! 🤖')
   });
 
+
 	chatClient.onMessage(async (channel, user, message, msg) => {
     if (shouldAutoShoutout(user)) {
 			chatClient.say(channel, `Go check out ${user}!`);
+      autoShoutouts[user] = new Date();
     }
 
-    if (message === '!followage') {
-      const follow = await apiClient.users.getFollowFromUserToBroadcaster(msg.userInfo.userId, msg.channelId!);
-
-      if (follow) {
-        const currentTimestamp = new Date();
-        const followStartTimestamp = follow.followDate;
-        
-        console.log(JSON.stringify({start: followStartTimestamp, end: currentTimestamp}))
-
-
-        chatClient.say(channel, `@${user} You have been following for ${formatDuration(
-          intervalToDuration({start: followStartTimestamp, end: currentTimestamp}), { delimiter: ', ' }
-        )}!`);
-      } else {
-        chatClient.say(channel, `@${user} You are not following! smh`);
+    await Promise.all(commands(apiClient, chatClient).map(async (command) => {
+      if (command.pattern.test(message)) {
+        await command.implementation(channel, user, message, msg);
       }
-    }
+    }))
 	});
 }
 
