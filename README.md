@@ -13,6 +13,7 @@ yarn start
 
 ## Built-in Commands
 - Auto-shoutout
+  - Rename `autoshoutout-example.json` to `autoshoutout.json` and edit the array of users
 - `!followage` tells you how long you've been following
 - `!anarchy`, `!x`, `!league`, `!regular` gives access to the splatoon3.ink map/mode rotation info
 
