@@ -4,7 +4,7 @@ import { ApiClient } from '@twurple/api';
 import { intervalToDuration } from 'date-fns';
 import { readFile, writeFile } from 'node:fs/promises';
 import * as dotenv from 'dotenv';
-import { commands } from './commands';
+import { commands, shoutout, tryGetChannel } from './commands';
 import autoShoutoutUsers from './autoshoutout.json';
 
 dotenv.config();
@@ -63,22 +63,33 @@ async function main() {
 
   chatClient.onMessage(async (channel, user, message, msg) => {
     if (shouldAutoShoutout(user)) {
-      chatClient.say(channel, `Go check out ${user}!`);
-      autoShoutouts[user] = new Date();
+      const userToShout = await apiClient.users.getUserByName(user);
+
+      if (userToShout != null) {
+        chatClient.say(
+          channel,
+          shoutout(userToShout, await tryGetChannel(apiClient, userToShout)),
+        );
+        autoShoutouts[user] = new Date();
+      }
     }
 
-    await Promise.all(
-      commands(apiClient, chatClient).map(async (command) => {
-        if (command.pattern.test(message)) {
-          await command.implementation(message.split(' '))(
-            channel,
-            user,
-            message,
-            msg,
-          );
-        }
-      }),
-    );
+    try {
+      await Promise.all(
+        commands(apiClient, chatClient).map(async (command) => {
+          if (command.pattern.test(message)) {
+            await command.implementation(message.split(' '))(
+              channel,
+              user,
+              message,
+              msg,
+            );
+          }
+        }),
+      );
+    } catch (error) {
+      console.error(error);
+    }
   });
 }
 

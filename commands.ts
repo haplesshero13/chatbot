@@ -1,7 +1,7 @@
 import { TwitchPrivateMessage } from '@twurple/chat/lib/commands/TwitchPrivateMessage';
 import { formatDuration, intervalToDuration } from 'date-fns';
 import { ChatClient } from '@twurple/chat';
-import { ApiClient } from '@twurple/api';
+import { ApiClient, HelixChannel, HelixUser } from '@twurple/api';
 
 type CommandImpl = (
   args: string[],
@@ -23,6 +23,24 @@ const fetchSplatSchedule = (mode: string, args: string[]) => {
   ).then((response) => response.text());
 };
 
+export const shoutout = (user: HelixUser, channel: HelixChannel | null) => {
+  return `Go check out ${user.displayName} at https://twitch.tv/${
+    user.name
+  } where they were last playing ${channel?.gameName || 'no game'}!`;
+};
+
+export const tryGetChannel = async (
+  apiClient: ApiClient,
+  userToShout: HelixUser,
+) => {
+  try {
+    return apiClient.channels.getChannelInfoById(userToShout.id);
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
 export const commands = (
   apiClient: ApiClient,
   chatClient: ChatClient,
@@ -31,49 +49,66 @@ export const commands = (
     pattern: /^!anarchy/,
     implementation: (args) => async (channel, user) => {
       const response = await fetchSplatSchedule('bankara', args);
-      chatClient.say(channel, `@${user} -> ${response}`);
+      return chatClient.say(channel, `@${user} -> ${response}`);
     },
   },
   {
     pattern: /^!regular/,
     implementation: (args) => async (channel, user) => {
       const response = await fetchSplatSchedule('regular', args);
-      chatClient.say(channel, `@${user} -> ${response}`);
+      return chatClient.say(channel, `@${user} -> ${response}`);
     },
   },
   {
     pattern: /^!ranked/,
     implementation: (args) => async (channel, user) => {
       const response = await fetchSplatSchedule('bankara', args);
-      chatClient.say(channel, `@${user} -> ${response}`);
+      return chatClient.say(channel, `@${user} -> ${response}`);
     },
   },
   {
     pattern: /^!turf/,
     implementation: (args) => async (channel, user) => {
       const response = await fetchSplatSchedule('regular', args);
-      chatClient.say(channel, `@${user} -> ${response}`);
+      return chatClient.say(channel, `@${user} -> ${response}`);
     },
   },
   {
     pattern: /^!x/,
     implementation: (args) => async (channel, user) => {
       const response = await fetchSplatSchedule('x', args);
-      chatClient.say(channel, `@${user} -> ${response}`);
+      return chatClient.say(channel, `@${user} -> ${response}`);
     },
   },
   {
     pattern: /^!league/,
     implementation: (args) => async (channel, user) => {
       const response = await fetchSplatSchedule('league', args);
-      chatClient.say(channel, `@${user} -> ${response}`);
+      return chatClient.say(channel, `@${user} -> ${response}`);
+    },
+  },
+  {
+    pattern: /^!so/,
+    implementation: (args) => async (channel) => {
+      const userToShout = await apiClient.users.getUserByName(args[1]);
+
+      if (userToShout != null) {
+        return chatClient.say(
+          channel,
+          shoutout(userToShout, await tryGetChannel(apiClient, userToShout)),
+        );
+      }
+      return chatClient.say(channel, 'User not found!');
     },
   },
   {
     pattern: /^!followage/,
-    implementation: () => async (channel, user, message, msg) => {
+    implementation: (args) => async (channel, user, message, msg) => {
+      const follower =
+        args[1] != null ? await apiClient.users.getUserByName(args[1]) : null;
+      const followerId = follower != null ? follower.id : msg.userInfo.userId;
       const follow = await apiClient.users.getFollowFromUserToBroadcaster(
-        msg.userInfo.userId,
+        followerId,
         msg.channelId ?? '',
       );
 
@@ -88,9 +123,11 @@ export const commands = (
           }),
         );
 
-        chatClient.say(
+        return chatClient.say(
           channel,
-          `@${user} You have been following for ${formatDuration(
+          `@${
+            follower?.displayName ?? user
+          } has been following for ${formatDuration(
             intervalToDuration({
               start: followStartTimestamp,
               end: currentTimestamp,
@@ -99,7 +136,10 @@ export const commands = (
           )}!`,
         );
       } else {
-        chatClient.say(channel, `@${user} You are not following! smh my head`);
+        return chatClient.say(
+          channel,
+          `@${user} is not following! smh my head`,
+        );
       }
     },
   },
