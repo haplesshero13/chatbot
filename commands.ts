@@ -12,7 +12,7 @@ type CommandImpl = (
   msg: TwitchPrivateMessage,
 ) => Promise<void>;
 
-export type Command = {
+type Command = {
   pattern: RegExp;
   implementation: CommandImpl;
 };
