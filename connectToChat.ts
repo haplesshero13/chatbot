@@ -1,13 +1,42 @@
+import * as dotenv from 'dotenv';
 import { RefreshingAuthProvider } from '@twurple/auth';
 import { ChatClient, LogLevel } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
 import { intervalToDuration } from 'date-fns';
-import { readFile, writeFile } from 'node:fs/promises';
 import { commands, shoutout, tryGetChannel } from './commands';
 import autoShoutoutUsers from './autoshoutout.json';
 import { ShoutoutTimestamp } from './index';
+import { connectToDatabase, getToken, updateToken } from './storage';
 
 export async function connectToChat() {
+  dotenv.config();
+
+  const db = await connectToDatabase();
+
+  const clientId = process.env.CLIENT_ID ?? '';
+  const clientSecret = process.env.CLIENT_SECRET ?? '';
+  const channels = JSON.parse(process.env.CHANNELS ?? '[]');
+  const tokenData = await getToken(db);
+  if (tokenData == null) {
+    return console.error('Token data not found!');
+  }
+  const authProvider = new RefreshingAuthProvider(
+    {
+      clientId,
+      clientSecret,
+      onRefresh: async (newTokenData) =>
+        await updateToken(db, { _id: tokenData._id, ...newTokenData }),
+    },
+    tokenData,
+  );
+  const apiClient = new ApiClient({ authProvider });
+  const chatClient = new ChatClient({
+    authProvider,
+    channels,
+    logger: { minLevel: LogLevel.DEBUG },
+  });
+  await chatClient.connect();
+
   const autoShoutouts = autoShoutoutUsers.reduce<ShoutoutTimestamp>(
     (acc, user) => {
       return { ...acc, [user]: 0 };
@@ -23,33 +52,6 @@ export async function connectToChat() {
       (intervalToDuration({ start: timestamp, end: new Date() }).days ?? 0) > 0
     );
   };
-
-  const clientId = process.env.CLIENT_ID ?? '';
-  const clientSecret = process.env.CLIENT_SECRET ?? '';
-  const channels = JSON.parse(process.env.CHANNELS ?? '[]');
-  const tokenData = JSON.parse(await readFile('./tokens.json', 'utf8'));
-  const authProvider = new RefreshingAuthProvider(
-    {
-      clientId,
-      clientSecret,
-      onRefresh: async (newTokenData) =>
-        await writeFile(
-          './tokens.json',
-          JSON.stringify(newTokenData, null, 4),
-          'utf8',
-        ),
-    },
-    tokenData,
-  );
-
-  const apiClient = new ApiClient({ authProvider });
-
-  const chatClient = new ChatClient({
-    authProvider,
-    channels,
-    logger: { minLevel: LogLevel.DEBUG },
-  });
-  await chatClient.connect();
 
   chatClient.onJoin((channel) => {
     chatClient.say(channel, '/me has joined the chat! 🤖');
