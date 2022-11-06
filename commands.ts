@@ -46,28 +46,28 @@ export const commands = (
   chatClient: ChatClient,
 ): Command[] => [
   {
-    pattern: /^!anarchy/,
+    pattern: /^!anarchy\s*/,
     implementation: (args) => async (channel, user) => {
       const response = await fetchSplatSchedule('bankara', args);
       return chatClient.say(channel, `@${user} -> ${response}`);
     },
   },
   {
-    pattern: /^!regular/,
+    pattern: /^!regular\s*/,
     implementation: (args) => async (channel, user) => {
       const response = await fetchSplatSchedule('regular', args);
       return chatClient.say(channel, `@${user} -> ${response}`);
     },
   },
   {
-    pattern: /^!ranked/,
+    pattern: /^!ranked\s*/,
     implementation: (args) => async (channel, user) => {
       const response = await fetchSplatSchedule('bankara', args);
       return chatClient.say(channel, `@${user} -> ${response}`);
     },
   },
   {
-    pattern: /^!turf/,
+    pattern: /^!turf\s*/,
     implementation: (args) => async (channel, user) => {
       const response = await fetchSplatSchedule('regular', args);
       return chatClient.say(channel, `@${user} -> ${response}`);
@@ -88,7 +88,7 @@ export const commands = (
     },
   },
   {
-    pattern: /^!so/,
+    pattern: /^!so\s*/,
     implementation: (args) => async (channel) => {
       const userToShout = await apiClient.users.getUserByName(args[1]);
 
@@ -102,7 +102,7 @@ export const commands = (
     },
   },
   {
-    pattern: /^!followage/,
+    pattern: /^!followage\s*/,
     implementation: (args) => async (channel, user, message, msg) => {
       const follower =
         args[1] != null ? await apiClient.users.getUserByName(args[1]) : null;
