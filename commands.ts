@@ -117,7 +117,7 @@ export const commands = (
     },
   },
   {
-    pattern: /^!salmon $(now|next)/,
+    pattern: /^!salmon (now|next)/,
     implementation: (args, matches) => async (channel, user) => {
       const response = await fetchSalmonSchedule(matches[1]);
       return chatClient.say(channel, `@${user} -> ${response}`);
