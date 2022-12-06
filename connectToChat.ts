@@ -74,12 +74,10 @@ export async function connectToChat() {
       await Promise.all(
         commands(apiClient, chatClient).map(async (command) => {
           if (command.pattern.test(message)) {
-            await command.implementation(message.split(' '))(
-              channel,
-              user,
-              message,
-              msg,
-            );
+            await command.implementation(
+              message.split(' '),
+              message.match(command.pattern) ?? [],
+            )(channel, user, message, msg);
           }
         }),
       );

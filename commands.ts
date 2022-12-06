@@ -5,6 +5,7 @@ import { ApiClient, HelixChannel, HelixUser } from '@twurple/api';
 
 type CommandImpl = (
   args: string[],
+  matches: string[],
 ) => (
   channel: string,
   user: string,
@@ -21,6 +22,34 @@ const fetchSplatSchedule = (mode: string, args: string[]) => {
   return fetch(
     `http://schedule.splat.pw/splatoon3?q=${args[1]}&arg=${args[2]}&mode=${mode}`,
   ).then((response) => response.text());
+};
+
+const fetchSalmonSchedule = async (arg: string) => {
+  const json: Record<string, any> = await fetch(
+    'https://splatoon3.ink/data/schedules.json',
+  ).then((response) => response.json());
+  const now = json.data.coopGroupingSchedule.regularSchedules.nodes[0];
+
+  const weaponsNow = now.setting.weapons.map((w) => w.name).join(', ');
+  const mapNow = now.setting.coopStage.name;
+  const endNow = new Date(now.endTime).toLocaleString('en-us', {
+    dateStyle: 'short',
+    timeStyle: 'long',
+  });
+
+  const next = json.data.coopGroupingSchedule.regularSchedules.nodes[1];
+  const weaponsNext = next.setting.weapons.map((w) => w.name).join(', ');
+  const mapNext = next.setting.coopStage.name;
+  const startNext = new Date(next.startTime).toLocaleString();
+
+  switch (arg) {
+    case 'now':
+      return `Current Salmon Run: ${weaponsNow} on ${mapNow} ending at ${endNow}.`;
+    case 'next':
+      return `Next Salmon Run: ${weaponsNext} on ${mapNext} starting at ${startNext}`;
+    default:
+      return `Unknown arg '${arg}'. Try 'now' or 'next'.`;
+  }
 };
 
 export const shoutout = (user: HelixUser, channel: HelixChannel | null) => {
@@ -84,6 +113,13 @@ export const commands = (
     pattern: /^!league/,
     implementation: (args) => async (channel, user) => {
       const response = await fetchSplatSchedule('league', args);
+      return chatClient.say(channel, `@${user} -> ${response}`);
+    },
+  },
+  {
+    pattern: /^!salmon $(now|next)/,
+    implementation: (args, matches) => async (channel, user) => {
+      const response = await fetchSalmonSchedule(matches[1]);
       return chatClient.say(channel, `@${user} -> ${response}`);
     },
   },
