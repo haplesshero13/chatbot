@@ -30,7 +30,7 @@ const fetchSalmonSchedule = async (arg: string) => {
   ).then((response) => response.json());
   const now = json.data.coopGroupingSchedule.regularSchedules.nodes[0];
 
-  const weaponsNow = now.setting.weapons.map((w) => w.name).join(', ');
+  const weaponsNow = now.setting.weapons.map((w: any) => w.name).join(', ');
   const mapNow = now.setting.coopStage.name;
   const endNow = new Date(now.endTime).toLocaleString('en-us', {
     dateStyle: 'short',
@@ -38,7 +38,7 @@ const fetchSalmonSchedule = async (arg: string) => {
   });
 
   const next = json.data.coopGroupingSchedule.regularSchedules.nodes[1];
-  const weaponsNext = next.setting.weapons.map((w) => w.name).join(', ');
+  const weaponsNext = next.setting.weapons.map((w: any) => w.name).join(', ');
   const mapNext = next.setting.coopStage.name;
   const startNext = new Date(next.startTime).toLocaleString();
 
