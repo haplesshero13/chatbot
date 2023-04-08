@@ -4,7 +4,6 @@ import { ChatClient, LogLevel } from '@twurple/chat';
 import { ApiClient } from '@twurple/api';
 import { intervalToDuration } from 'date-fns';
 import { commands, shoutout, tryGetChannel } from './commands';
-import autoShoutoutUsers from './autoshoutout.json';
 import { ShoutoutTimestamp } from './index';
 import { connectToDatabase, getToken, updateToken } from './storage';
 
@@ -15,7 +14,10 @@ export async function connectToChat() {
 
   const clientId = process.env.CLIENT_ID ?? '';
   const clientSecret = process.env.CLIENT_SECRET ?? '';
-  const channels = JSON.parse(process.env.CHANNELS ?? '[]');
+  const channels: string[] = JSON.parse(process.env.CHANNELS ?? '[]');
+  const autoShoutoutUsers: string[] = JSON.parse(
+    process.env.AUTO_SHOUTOUTS ?? '[]',
+  );
   const tokenData = await getToken(db);
   if (tokenData == null) {
     return console.error('Token data not found!');
