@@ -42,6 +42,20 @@ export const commands = (
     },
   },
   {
+    pattern: /^!ranked/,
+    implementation: (args) => async (channel, user) => {
+      const response = await fetchSplatSchedule('bankara', args);
+      chatClient.say(channel, `@${user} -> ${response}`);
+    },
+  },
+  {
+    pattern: /^!turf/,
+    implementation: (args) => async (channel, user) => {
+      const response = await fetchSplatSchedule('regular', args);
+      chatClient.say(channel, `@${user} -> ${response}`);
+    },
+  },
+  {
     pattern: /^!x/,
     implementation: (args) => async (channel, user) => {
       const response = await fetchSplatSchedule('x', args);
