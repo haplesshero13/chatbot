@@ -5,6 +5,7 @@ import { intervalToDuration } from 'date-fns';
 import { readFile, writeFile } from 'node:fs/promises';
 import * as dotenv from 'dotenv';
 import { commands } from './commands';
+import autoShoutoutUsers from './autoshoutout.json';
 
 dotenv.config();
 
@@ -13,7 +14,6 @@ type ShoutoutTimestamp = {
 };
 
 async function main() {
-  const autoShoutoutUsers: string[] = [];
   const autoShoutouts = autoShoutoutUsers.reduce<ShoutoutTimestamp>(
     (acc, user) => {
       return { ...acc, [user]: 0 };
