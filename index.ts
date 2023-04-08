@@ -32,6 +32,7 @@ async function main() {
 
   const clientId = process.env.CLIENT_ID ?? '';
   const clientSecret = process.env.CLIENT_SECRET ?? '';
+  const channels = JSON.parse(process.env.CHANNELS ?? '[]');
   const tokenData = JSON.parse(await readFile('./tokens.json', 'utf8'));
   const authProvider = new RefreshingAuthProvider(
     {
@@ -49,7 +50,6 @@ async function main() {
 
   const apiClient = new ApiClient({ authProvider });
 
-  const channels = ['haplesshero'];
   const chatClient = new ChatClient({
     authProvider,
     channels,
