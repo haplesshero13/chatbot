@@ -35,6 +35,7 @@ yarn start
 - `!anarchy`, `!x`, `!league`, `!regular` gives access to the splatoon3.ink map/mode rotation info
 
 ## Roadmap
+- Automated messages (timers)
 - Move persistence (tokens) from filesystem to database to support cloud deployment
 - Add custom command command (e.g. addcomm) with simple JS evaluation
 - Add Express server and a frontend to allow admin (me or someone) to add new channels
