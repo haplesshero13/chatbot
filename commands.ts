@@ -3,6 +3,10 @@ import { formatDuration, intervalToDuration } from 'date-fns';
 import { ChatClient } from '@twurple/chat';
 import { ApiClient, HelixChannel, HelixUser } from '@twurple/api';
 
+const timeZone = 'America/New_York';
+const dateStyle = 'short';
+const timeStyle = 'long';
+
 type CommandImpl = (
   args: string[],
   matches: string[],
@@ -33,14 +37,19 @@ const fetchSalmonSchedule = async (arg: string) => {
   const weaponsNow = now.setting.weapons.map((w: any) => w.name).join(', ');
   const mapNow = now.setting.coopStage.name;
   const endNow = new Date(now.endTime).toLocaleString('en-us', {
-    dateStyle: 'short',
-    timeStyle: 'long',
+    timeZone,
+    dateStyle,
+    timeStyle,
   });
 
   const next = json.data.coopGroupingSchedule.regularSchedules.nodes[1];
   const weaponsNext = next.setting.weapons.map((w: any) => w.name).join(', ');
   const mapNext = next.setting.coopStage.name;
-  const startNext = new Date(next.startTime).toLocaleString();
+  const startNext = new Date(next.startTime).toLocaleString('en-us', {
+    timeZone,
+    dateStyle,
+    timeStyle,
+  });
 
   switch (arg) {
     case 'now':
